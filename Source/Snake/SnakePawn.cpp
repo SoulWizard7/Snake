@@ -7,6 +7,7 @@
 #include "SnakeFood.h"
 #include "SnakeGameMode.h"
 #include "SnakePlayerController.h"
+#include "Blueprint/WidgetBlueprintLibrary.h"
 
 ASnakePawn::ASnakePawn(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -32,24 +33,14 @@ void ASnakePawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 	PlayerInputComponent->BindAction("MoveDown", EInputEvent::IE_Pressed, this, &ASnakePawn::MoveDown);
 }
 
-//Main logic of movement
+//Main function for movement
 
 void ASnakePawn::SnakeTimerTick()
-{
-	FVector HeadPosition = SnakeHead->CurPos;	
-	FVector NewHeadPosition = HeadPosition + CurDir * 64;
+{		
+	FVector NewHeadPosition = SnakeHead->CurPos + CurDir * 64;
 
 	SnakeHead->Move(NewHeadPosition);
-/*
-	SnakeHead->SetActorLocation(NewHeadPosition, false);
-
-	if(SnakeHead->NextNode != nullptr)
-	{		
-		SnakeHead->NextNode->Move(HeadPosition);
-	}
 	
-	SnakeHead->CurPos = NewHeadPosition;*/
-
 	if(OutOfBounds(NewHeadPosition) || CrashIntoSelf(NewHeadPosition))
 	{
 		StopGame();
@@ -121,12 +112,14 @@ void ASnakePawn::StartGame()
 
 	if(SnakeHead && SnakeFood && GameMode && PlayerController)
 	{
-		PlayerController->HideCursor();
 		CurScore = 0;
 		GameMode->SetScoreToWidget(CurScore);
 		
 		CurDir = FVector::ForwardVector;
 		LastMoveDir = FVector::ForwardVector;
+
+		PlayerController->HideCursor();
+		UWidgetBlueprintLibrary::SetInputMode_GameOnly(PlayerController);
 		
 		if(bGameHasStarted)
 		{			
@@ -168,6 +161,7 @@ void ASnakePawn::StopGame()
 {
 	GetWorld()->GetTimerManager().PauseTimer(TimerHandle);
 	PlayerController->ShowCursor();
+	UWidgetBlueprintLibrary::SetInputMode_UIOnlyEx(PlayerController);
 }
 
 void ASnakePawn::AddNode()

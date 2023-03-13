@@ -30,6 +30,6 @@ void ASnakeNode::DestroySnake()
 	{
 		NextNode->DestroySnake();
 	}
-	K2_DestroyActor();
+	Destroy();
 }
 
